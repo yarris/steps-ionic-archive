@@ -487,6 +487,10 @@ func main() {
 
 			cmdArgs = append(cmdArgs, platform)
 
+			if configs.BuildConfig != "" {
+				cmdArgs = append(cmdArgs, "--buildConfig", configs.BuildConfig)
+			}
+
 			cmd := command.New(cmdArgs[0], cmdArgs[1:]...)
 			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr).SetStdin(strings.NewReader("y"))
 
