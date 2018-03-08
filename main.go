@@ -383,7 +383,7 @@ func main() {
 	fmt.Println()
 	log.Infof("Building project")
 
-	{
+	if false {
 		// platform rm
 		for _, platform := range platforms {
 			cmdArgs := []string{"ionic"}
@@ -406,7 +406,7 @@ func main() {
 		}
 	}
 
-	{
+	if false {
 		// platform add
 		for _, platform := range platforms {
 			cmdArgs := []string{"ionic"}
@@ -438,7 +438,7 @@ func main() {
 	}
 
 	{
-		// build
+		// prepare
 		options := []string{}
 		if configs.Options != "" {
 			opts, err := shellquote.Split(configs.Options)
@@ -448,13 +448,34 @@ func main() {
 			options = opts
 		}
 
-		for _, platform := range platforms {
-			cmdArgs := []string{"ionic"}
-			if ionicMajorVersion > 2 {
-				cmdArgs = append(cmdArgs, "cordova")
-			}
+		cmdArgs := []string{"ionic"}
+		if ionicMajorVersion > 2 {
+			cmdArgs = append(cmdArgs, "cordova")
+		}
 
-			cmdArgs = append(cmdArgs, "build")
+		cmdArgs = append(cmdArgs, "prepare")
+
+		if configs.BuildConfig != "" {
+			cmdArgs = append(cmdArgs, "--buildConfig", configs.BuildConfig)
+		}
+
+		cmdArgs = append(cmdArgs, options...)
+		cmdArgs = append(cmdArgs)
+
+		cmd := command.New(cmdArgs[0], cmdArgs[1:]...)
+		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr).SetStdin(strings.NewReader("y"))
+
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+
+		if err := cmd.Run(); err != nil {
+			fail("command failed, error: %s", err)
+		}
+	}
+
+	{
+		// build
+		for _, platform := range platforms {
+			cmdArgs := []string{"cordova", "build"}
 
 			if configs.Configuration != "" {
 				cmdArgs = append(cmdArgs, "--"+configs.Configuration)
@@ -465,13 +486,6 @@ func main() {
 			}
 
 			cmdArgs = append(cmdArgs, platform)
-
-			if configs.BuildConfig != "" {
-				cmdArgs = append(cmdArgs, "--buildConfig", configs.BuildConfig)
-			}
-
-			cmdArgs = append(cmdArgs, options...)
-			cmdArgs = append(cmdArgs)
 
 			cmd := command.New(cmdArgs[0], cmdArgs[1:]...)
 			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr).SetStdin(strings.NewReader("y"))
